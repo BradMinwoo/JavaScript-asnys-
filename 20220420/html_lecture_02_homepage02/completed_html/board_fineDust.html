@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>NextIT</title>
+<link rel="icon" type="image/x-icon" href="./images/nextit_log.jpg" />
+<link rel="stylesheet" type="text/css"  href="./css/header.css">
+<link rel="stylesheet" type="text/css"  href="./css/footer.css">
+<link rel="stylesheet" type="text/css"  href="./css/style_boardList.css">
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<style>
+.button_div{
+	width: 1000px;
+	text-align: right;
+	margin-top:20px;
+}
+</style>
+<script>
+$(function(){
+	
+//1차-1 url 변경하기 (1차-2)
+	$(".top_nav").load("/sample01_ajax/header.do");
+	$("#page_footer").load("/sample01_ajax/footer.do");
+	
+/*1차-3 (https://www.data.go.kr/data/15073885/openapi.do 에서  하단에 자바 샘플코드 확인 후 )미세먼지 함수 호출하기(1차-e) */
+	fineDust_json();
+	
+//3차-1 xml형식으로 데이터 받기위해서 함수 분리(3차-2)
+	//fineDust_xml();
+}); 
+
+function fineDust_json(){
+    //alert("fineDust_json");
+
+    //이번년도 기준으로 요청하기
+    let date = new Date();
+    let year01 = date.getFullYear().toString(); 
+    console.log("year01::"+year01);
+    
+    $.ajax({
+        url: '/sample01_ajax/fineDust_json.do',
+        type:'post',
+        data: { year: year01 },
+        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
+        dataType:'json',
+        success: function(data){
+            console.log(data);
+//2차-1 서버에서 json데이터 받아서 처리하기(2차-2)
+            //data를 json 파싱 페이지에서 보여주기
+			let fine_dust = JSON.parse(data);
+            console.log(fine_dust);
+            
+			fine_dust = fine_dust.response.body.items;
+            console.log(fine_dust.length);
+            
+            let insertHtml ="";
+//2차-2 서버에서 json데이터 받아서 처리하기(2차-3)
+         /*
+			for(let i=0 ; i < fine_dust.length; i ++){
+				insertHtml +="<tr>";
+				insertHtml +="<td>"+(i+1)+"</td>";//순번
+				insertHtml +="<td>"+fine_dust[i].districtName+"</td>";//지역
+				insertHtml +="<td>"+fine_dust[i].moveName+"</td>";//검측장소
+				insertHtml +="<td>"+fine_dust[i].issueDate+"</td>";//일시
+				insertHtml +="<td>"+fine_dust[i].issueGbn+"</td>";//구분
+				insertHtml +="<td>"+fine_dust[i].issueVal+"</td>";//수치
+				insertHtml +="</tr>";
+        	} 
+        	$("#div_table > table > tbody").html(insertHtml);
+      	*/
+         
+//2차-3 내림차순 정렬 후 상위 10개만 출력(2차-e)
+         	let temp; 
+            for(let i = 0; i < fine_dust.length-1; i++ ) {
+                for (let j = i+1; j < fine_dust.length; j++ ) {
+                    if(Number(fine_dust[j].issueVal) > Number(fine_dust[i].issueVal)) {
+                        temp = fine_dust[j];
+                        fine_dust[j] = fine_dust[i];
+                        fine_dust[i] = temp;
+                    }
+                }
+            }
+        	//상위 10개 자르기
+            for(let i=0 ; i < 9; i ++){
+            	insertHtml +="<tr>";
+            	insertHtml +="<td>"+(i+1)+"</td>";//순번
+            	insertHtml +="<td>"+fine_dust[i].districtName+"</td>";//지역
+            	insertHtml +="<td>"+fine_dust[i].moveName+"</td>";//검측장소
+            	insertHtml +="<td>"+fine_dust[i].issueDate+"</td>";//일시
+            	insertHtml +="<td>"+fine_dust[i].issueGbn+"</td>";//구분
+            	insertHtml +="<td>"+fine_dust[i].issueVal+"</td>";//수치
+            	insertHtml +="</tr>";
+            }
+           	$("#div_table > table > tbody").html(insertHtml);
+        },
+        error: function(e){
+            alert("error::"+e.status);
+        }
+    });
+}
+//3차-2 xml형식으로 데이터 받기(3차-3)
+function fineDust_xml(){
+	//alert("fineDust_xml");
+	
+	let date = new Date();
+    let year01 = date.getFullYear().toString(); 
+    console.log("year01::"+year01);
+    
+    $.ajax({
+        url: '/sample01_ajax/fineDust_xml.do',		
+        type:'post',
+        data: { year: year01 },
+        contentType:"application/x-www-form-urlencoded; charset=UTF-8",
+        dataType:'json',
+        success: function(data){
+			console.log(data);
+//3차-3 xml 데이터 파싱 (All-e)
+			let xml_data = new DOMParser();
+			let xmlDoc = xml_data.parseFromString(data, "text/xml");
+			console.log(xmlDoc);
+			let item_tag = xmlDoc.getElementsByTagName("item");
+			console.log("item_tag.length::"+item_tag.length);
+
+			let fine_dust = [];
+			for(let i = 0; i < item_tag.length; i++ ) {
+				let fd_obj = {};	
+				fd_obj.districtName= item_tag[i].getElementsByTagName("districtName")[0].childNodes[0].nodeValue;
+				fd_obj.moveName= item_tag[i].getElementsByTagName("moveName")[0].childNodes[0].nodeValue;
+				fd_obj.issueDate= item_tag[i].getElementsByTagName("issueDate")[0].childNodes[0].nodeValue;
+				fd_obj.issueGbn= item_tag[i].getElementsByTagName("issueGbn")[0].childNodes[0].nodeValue;
+				fd_obj.issueVal= item_tag[i].getElementsByTagName("issueVal")[0].childNodes[0].nodeValue;
+				fine_dust.push(fd_obj);
+			}
+			console.log(fine_dust);
+			
+			//내림차순 정렬
+         	let temp; 
+            for(let i = 0; i < fine_dust.length-1; i++ ) {
+                for (let j = i+1; j < fine_dust.length; j++ ) {
+                    if(Number(fine_dust[j].issueVal) > Number(fine_dust[i].issueVal)) {
+                        temp = fine_dust[j];
+                        fine_dust[j] = fine_dust[i];
+                        fine_dust[i] = temp;
+                    }
+                }
+            }
+            
+        	//상위 10개 자르기
+            let insertHtml ="";
+            for(let i=0 ; i < 9; i ++){
+            	insertHtml +="<tr>";
+            	insertHtml +="<td>"+(i+1)+"</td>";//순번
+            	insertHtml +="<td>"+fine_dust[i].districtName+"</td>";//지역
+            	insertHtml +="<td>"+fine_dust[i].moveName+"</td>";//검측장소
+            	insertHtml +="<td>"+fine_dust[i].issueDate+"</td>";//일시
+            	insertHtml +="<td>"+fine_dust[i].issueGbn+"</td>";//구분
+            	insertHtml +="<td>"+fine_dust[i].issueVal+"</td>";//수치
+            	insertHtml +="</tr>";
+            }
+           	$("#div_table > table > tbody").html(insertHtml);
+        },
+        error: function(e){
+            alert("error::"+e.status);
+        }
+    });    
+            
+}
+</script>
+</head>
+<body>
+    <div id="wrap">
+        <div class="header">
+            <div class="top_nav">
+                <!-- header 영역 -->
+            </div>
+        </div>
+        <!-- header e -->
+
+        <div class="intro_bg">
+            <div class="intro_text">
+                <h1>NextIT</h1>
+                <h4>넥스트아이티</h4>
+            </div>
+        </div>
+        <!-- intro_bg e -->
+
+        <!-- 전체 영역잡기 -->
+        <div class="contents">
+<!--1차-2 미세먼지 리스트 테이블 생성(1차-3)-->
+            <div id="div_fineDust">
+	            <div id="div_table">
+		            <table>
+		                <colgroup>
+		                    <!-- 
+		                    <col width="100">
+		                    <col width="?"> 
+		                    -->
+		                </colgroup>
+		                <thead>
+		                    <tr>
+		                        <!-- 
+		                        <th>No</th>
+		                        <th>제목</th> 
+		                        -->
+		                        <th>No</th>
+		                        <th>지역</th>
+		                        <th>검측장소</th>
+		                        <th>일시</th>
+		                        <th>구분</th>
+		                        <th>수치</th>
+		                        
+		                    </tr>
+		                </thead>
+		                <tbody>
+		                    <!-- 미세먼지 리스트 -->
+		                </tbody>
+		            </table>
+		        </div>
+		        <div class="button_div">
+					<input type="button" onclick="fineDust_json()" value="fineDust_json"/>
+					<input type="button" onclick="fineDust_xml()" value="fineDust_xml"/>
+				</div>
+	        </div>
+        </div>
+
+         <!-- footer -->
+         <footer id="page_footer">
+            <!-- footer영역 -->
+        </footer>
+
+   </div>    
+</body>
+</html>
+
+<!-- 서버단 소스 
+
+//컨트롤러 요청 
+    @RequestMapping(value="/board_fineDust.do")
+    public String board_fineDust() {
+        System.out.println("/board_fineDust.do");
+        return "sample/board_fineDust.html";  
+    }
+
+//json으로 요청
+    @RequestMapping(value="/fineDust_json.do")
+    @ResponseBody
+    public String fineDust_json(HttpServletRequest request ) {
+        System.out.println("fineDust_json:::::::");
+        
+        String year = request.getParameter("year");
+        System.out.println("year:::"+year);
+        
+        String sendData ="";
+
+        try {
+            StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B552584/UlfptcaAlarmInqireSvc/getUlfptcaAlarmInfo"); /*URL*/
+            urlBuilder.append("?" + "serviceKey=인증키를입력해주세요"); /*Service Key*/
+            urlBuilder.append("&" + "returnType=json"); /*xml 또는 json*/
+            urlBuilder.append("&" + "numOfRows=100"); /*한 페이지 결과 수*/
+            urlBuilder.append("&" + "pageNo=1"); /*페이지번호*/
+            urlBuilder.append("&" + "year="+year); /*측정 연도*/
+            //urlBuilder.append("&" + "itemCode=PM10"); /*미세먼지 항목 구분(PM10, PM25), PM10/PM25 모두 조회할
+
+            URL url = new URL(urlBuilder.toString());  //try_Catch 해주기
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+        
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-type", "application/json");
+            System.out.println("Response code: " + conn.getResponseCode());
+            BufferedReader rd;
+            if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+                rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8")); 
+            } else {
+                rd = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "UTF-8"));
+            }
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = rd.readLine()) != null) {
+                sb.append(line);
+            }
+            rd.close();
+            conn.disconnect();
+            System.out.println(sb.toString());
+            sendData = sb.toString();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        return sendData; 
+    }
+
+//xml으로 요청        
+    @RequestMapping(value="/fineDust_xml.do")
+    @ResponseBody
+    public String fineDust_xml(HttpServletRequest request) {
+        System.out.println("fineDust_xml:::::::");
+        
+        String year = request.getParameter("year");
+        System.out.println("year:::"+year);
+        
+        String sendData ="";
+        try {
+            StringBuilder urlBuilder = new StringBuilder("http://apis.data.go.kr/B552584/UlfptcaAlarmInqireSvc/getUlfptcaAlarmInfo"); /*URL*/
+            urlBuilder.append("?" + "serviceKey=인증키를입력해주세요"); /*Service Key*/
+            urlBuilder.append("&" + "returnType=xml"); /*xml 또는 json*/
+            urlBuilder.append("&" + "numOfRows=100"); /*한 페이지 결과 수*/
+            urlBuilder.append("&" + "pageNo=1"); /*페이지번호*/
+            urlBuilder.append("&" + "year="+year); /*측정 연도*/
+            //urlBuilder.append("&" + "itemCode=PM10"); /*미세먼지 항목 구분(PM10, PM25), PM10/PM25 모두 조회할
+
+            URL url = new URL(urlBuilder.toString());
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Content-type", "application/json");             
+            
+            System.out.println("Response code: " + conn.getResponseCode());
+            BufferedReader rd;
+            if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+                rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8")); 
+            } else {
+                rd = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "UTF-8"));
+            }
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = rd.readLine()) != null) {
+                sb.append(line);
+            }
+            rd.close();
+            conn.disconnect();
+            System.out.println(sb.toString());
+            sendData = sb.toString();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        return sendData; 
+    }
+-->

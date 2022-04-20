@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>NextIT</title>
+<link rel="icon" type="image/x-icon" href="./images/nextit_log.jpg" />
+<link rel="stylesheet" type="text/css" href="./css/style_main.css">
+<link rel="stylesheet" type="text/css" href="./css/footer.css">
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<style type="text/css">
+
+/* 6차-2 modal css (6차-3) */
+#modal_div1{
+	width: 100%;
+	height: 100%;
+	position: fixed; /*스크롤처리*/
+	top: 0; right: 0; bottom: 0; left: 0;
+	background-color: rgba(0,0,0,0.4);	
+	z-index: 1;
+	display: none;
+}
+#modal_div2{
+	width: 400px;
+	height: 400px;
+	background-color: lightgrey;
+	text-align: center;
+	position: fixed;
+	left: calc(50% - 200px);
+	top: calc(50% - 200px);
+}
+#modal_div2 > p {
+	margin-top: 50px;
+}
+#modal_div2 > a {
+	margin-left: 300px;
+}
+
+
+/*6차-8 form css 추가 작업 (6차-9)*/
+form[name="loginForm"]{
+	width: 350px;
+    height: 350px;
+    /* background-color: tomato; */
+    margin-top: 20px;
+}
+.int-area{
+    width: 300px;
+    height: 150px;
+    /* background-color: lightblue; */ 
+}
+.int-area:first-child{
+	padding-top: 40px;
+}
+.int-area input{
+    width: 80%;
+    padding: 20px 10px 10px;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid #999;
+    font-size: 18px;
+    color: #fff;
+}
+.btn-area > button{
+    width: 70%;
+    height: 40px;
+    color: #fff;
+    font-size: 20px;
+    border: none;
+    border-radius: 15px;
+    background-color: lightpink;
+    position: relative;
+    top: -50px
+}
+/* 버튼클릭액션 */
+#btn_id:active{
+	color: gray;
+}
+</style>
+<script>
+
+ 
+$(function(){
+//1차-1 url 변경 (1차-2)
+    // footer불러오기
+    //$("#page_footer").load("./footer.html");
+    $("#page_footer").load("/sample01_ajax/footer.do");
+
+    //alert("123");
+    let img_files=[
+        "./images/img1.jpg",
+        "./images/img2.jpg",
+        "./images/img102.jpg",
+    ];
+    let div_img = document.getElementById("img_div");
+    let i =0;
+    function fn_change_img(){
+        //alert("123123123");
+        console.log("i::::"+i);
+        div_img.style.backgroundImage="url("+img_files[i]+")";
+        if(i==2){
+            i=0;
+        }else{
+            i++
+        }
+        div_img.style.transitionDuration="2s"
+    }
+
+    setInterval(function(){
+       fn_change_img();
+
+    },4000);
+    
+
+//6차-9 메인페이지에 오면 검사해서 아이디랑 비밀번호가 같으면 modal창 띠워서 변경하게 하기 (6차-10)
+let mem_id = sessionStorage.getItem("mem_id");
+console.log("mem_id::"+mem_id);
+
+let memberList = localStorage.getItem("memberList");
+console.log("memberList::::"+memberList);
+
+let mem_arr = JSON.parse(memberList);
+console.log(mem_arr.length);
+
+for(let i=0; i<mem_arr.length; i++){
+	if(mem_arr[i].mem_id == mem_id && mem_arr[i].mem_pw == mem_id ){
+		//alert("비밀번호를 변경하셔야 합니다.");
+		//$("#modal_div1").show();	
+		$("#modal_div1").fadeIn();
+	}
+}
+
+
+
+
+/*6차-5 modal이 닫히는지 확인, 확인 후 태그 주석처리 (6차-6)
+$(".modal_close_btn").click(function() {
+	$("#modal_div1").fadeOut();
+}); */    
+    
+//}
+
+});
+
+
+//6차-4 modal이 뜨는지 확인, 확인 후 태그 주석처리 (6차-5) 
+/* function fn_modal_write(){
+	 $("#modal_div1").fadeIn();
+} */ 
+
+//6차-10 변경로직 처리하기 (All-e)
+function fn_change(){
+	let mem_pw = $("#mem_pw").val().trim();
+ 	if(mem_pw.length<4){
+		alert("PASSWORD가 너무 짧습니다. 4글자 이상 입력해 주세요");
+		$("#mem_pw").val("");
+		return;	
+	}
+	let mem_pw_check = $("#mem_pw_check").val();
+    if(mem_pw != mem_pw_check){
+    	$("#mem_pw_check").val("");
+    	alert("입력하신 비밀번호와 재확인 비밀번호가 틀립니다.");
+    	return; 
+    }
+    let mem_id = sessionStorage.getItem("mem_id");
+    console.log("mem_id::"+mem_id);
+
+    let memberList = localStorage.getItem("memberList");
+    console.log("memberList::::"+memberList);
+
+    let mem_arr = JSON.parse(memberList);
+    console.log(mem_arr.length);
+    //specialyw03
+    for(let i=0; i<mem_arr.length; i++){
+   		console.log(mem_arr[i].mem_id+" , "+mem_id+" , "+mem_arr[i].mem_pw+" , "+mem_pw);
+    	if(mem_arr[i].mem_id == mem_id){
+    		if(mem_arr[i].mem_pw != mem_pw){
+    			mem_arr[i].mem_pw = mem_pw;
+    		}else{
+    			alert("기존 비밀번호와 같습니다. 다시입력해주세요");
+    			document.loginForm.reset();
+    			return false;
+    			
+    			/* 참고사항 
+    				사실 비밀번호는 일방향 해시 암호화 되어야 합니다.
+	    			비밀번호는 화면단에 전송하지 않아야 합니다.
+	    			검증은 서버단에서 되어야 합니다.
+    			*/
+    		}
+    	}
+    }
+	memberList = JSON.stringify(mem_arr);
+    localStorage.setItem("memberList", memberList);
+    alert("비밀번호 변경이 완료 되었습니다.");
+    //$("#modal_div1").hide();
+    $("#modal_div1").fadeOut();
+    
+}
+/* 5차-2 logOut처리 (5차-e)*/
+function fn_logout(){
+	//alert("fn_logout");
+	let ret = confirm("로그아웃 하시겠습니까?");
+	if(ret){
+		sessionStorage.removeItem("mem_id");
+		alert("로그아웃  하였습니다. 로그인 페이지로 이동합니다.");
+		location.href ="/sample01_ajax/login.do";
+	}else{
+		alert("로그아웃을 취소하셨습니다.");		
+	}
+}
+</script>
+</head>
+<body>
+    <div id="wrap">
+        <div  id="img_div" class="intro_bg">
+            <div class="header">
+                <!-- hearder s-->
+                <div class="searchArea">
+                    <form action="">
+                        <input type="text" id="input_search" name="input_search"
+                            value="" placeholder="Search">
+                        <span>검색</span>
+                    </form>
+                </div>
+                <ul class="nav">
+                    <li><a href="">HOME</a></li>
+                    <li><a href="#about">ABOUT</a></li>
+                    <li><a href="#service">SERVICE</a>
+                   	   	<ul>
+	                        <li><a href="#">menu1</a></li>
+	                        <li><a href="#">menu2</a></li>
+	                        <li><a href="#">menu3</a></li>
+						</ul>
+                    </li>
+                    <li><a href="#content">CONTENT</a></li>
+                    <!-- <li><a href="./board_list.html">NOTICE</a></li> -->
+<!--1차-2 게시판 링크 잡기(1차-e) --> 
+                    <li><a href="/sample01_ajax/board_list.do">NOTICE</a></li>
+<!--5차-1 logout(5차-2)-->
+                    <li><a href="javascript:fn_logout()">LOGOUT</a></li>
+                </ul>
+                <!-- header e -->
+
+
+                <!-- 반응형 추가 s -->
+                <!-- 3줄 선 그리기  -->
+                <input type="checkbox" id="menuicon" />
+                <label for="menuicon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </label>
+
+                <div class="header_icon">
+                    <ul class="menu">
+                        <li><a href="#">HOME</a></li>
+                        <li><a href="#about">ABOUT</a></li>
+                        <li><a href="#service">SERVICE</a></li>
+                        <li><a href="#content">CONTENT</a></li>
+                        <!-- <li><a href="http://127.0.0.1:5500/html_homepage_01_lecture/board_list.html">NOTICE</a></li> -->
+                        <li><a href="/sample01_ajax/board_list.do">NOTICE</a></li>
+                    </ul>
+                </div>
+                <!-- 반응형 추가 e -->
+
+            </div>
+            <div class="intro_text">
+                <h1>NextIT</h1>
+                <H4>넥스트아이티</H4>
+            </div>
+            
+        </div><!-- intro_bg e -->
+
+
+        <!--sub_title_div s -->
+        <div class="sub_title_div">
+            <ul class="sub_title">
+                <li>
+                    <div>
+                        <h2>AA</h2>
+                        <p>11</p>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <h2>BB</h2>
+                        <p>22</p>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <h2>CC</h2>
+                        <p>33</p>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <h2>DD</h2>
+                        <p>44</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- main_text0 s -->
+        <div class="main_text0">
+            <h1 id="about">ABOUT</h1>
+            <p>4차 산업혁명 신기술 교육을 선도하는...</p>
+            <ul class="icons">
+                <li>
+                    <div class="icon_img">
+                        <img src="./images/icon0.svg" alt="이미지가 없습니다.">
+                    </div>
+                    <div class="contents1_bold">
+<!-- 2차-1 지도 text변경(2차-2) -->
+                        <!-- <p>ABC</p> -->
+                        <p>지도</p>
+                    </div>
+                    <div class="contents2">
+                        <p>2323232323232</p>
+                    </div>
+                    <div class="more">
+<!-- 2차-2 지도  경로 변경(2차-e) -->
+						<!-- MORE -->
+                        <a href="/sample01_ajax/board_map01.do">MORE</a>
+                    </div>
+                </li>
+                <li>
+                    <div class="icon_img">
+                        <img src="./images/icon1.svg" alt="이미지가 없습니다.">
+                    </div>
+                    <div class="contents1_bold">
+<!-- 3차-1 영화 text변경(3차-2) -->
+                        <!-- <p>ABC</p> -->
+                        <p>영화</p>
+                    </div>
+                    <div class="contents2">
+                        <p>2323232323232</p>
+                    </div>
+                    <div class="more">
+<!-- 3차-2 영화 text변경(3차-e) -->
+						<!-- MORE -->
+                    	<a href="/sample01_ajax/board_movie.do">MORE</a>
+                    </div>
+                </li>
+                <li>
+                    <div class="icon_img">
+                        <img src="./images/icon2.svg" alt="이미지가 없습니다.">
+                    </div>
+                    <div class="contents1_bold">
+                        <!-- <p>ABC</p> -->
+<!-- 4차-1 미세먼지 text변경(4차-2) -->
+                        <p>미세먼지</p>
+                    </div>
+                    <div class="contents2">
+                        <p>2323232323232</p>
+                    </div>
+                    <div class="more">
+<!-- 4차-2 미세먼지 text변경(4차-e) -->
+						<!-- MORE -->
+                        <a href="/sample01_ajax/board_fineDust.do">MORE</a>
+                    </div>
+                </li>
+                    
+            </ul>
+        </div>
+        <!-- main_text0 e -->
+
+        <!-- main_text1 s -->
+        <div class="main_text1">
+            <h1 id="service">SERVICE</h1>
+            <div class="contents2">
+                <p>5454545454545454545454</p>
+            </div>
+            <div class="service">
+                <div>
+                    <img src="./images/img101.png" alt="이지미가 존재하지 않습니다.">
+                </div>
+                <div class="contents3">
+                    <h2>service content2</h2>
+                    <p>안녕하세요 NextIT 입니다. 만나서 반갑습니다.
+			                        안녕하세요 NextIT 입니다. 만나서 반갑습니다.
+			                        안녕하세요 NextIT 입니다. 만나서 반갑습니다.
+			                        안녕하세요 NextIT 입니다. 만나서 반갑습니다.
+			                        안녕하세요 NextIT 입니다. 만나서 반갑습니다.
+			                        안녕하세요 NextIT 입니다. 만나서 반갑습니다.
+			                        안녕하세요 NextIT 입니다. 만나서 반갑습니다.
+			                        안녕하세요 NextIT 입니다. 만나서 반갑습니다.
+                    </p>
+                </div>
+            </div>
+        </div>  <!-- main_text1 e -->
+
+        <!-- main_text2 s -->
+        <div class="main_text2">
+            <ul>
+                <li>
+                    <div class="last_bg1">
+                        <h1 id="content">CONTENT</h1>
+                        <div>
+                            <p>NextIT 교육센터입니다.</p>
+                        </div>
+                        <div class="more2">
+                            <p><a href="/sample01_ajax/board_chart.do">더 알아보기</a></p>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <div class="last_bg2">
+                        <h1>CUSTOMER</h1>
+                        <div>
+                            <p>NextIT 교육센터입니다.</p>
+                        </div>
+                        <div class="more2">
+                            <p>더 알아보기</p>
+                        </div>
+                    </div>
+                </li>
+                
+            </ul>
+        </div><!-- main_text2 e -->
+
+        <!-- footer -->
+        <footer id="page_footer">
+            <!-- footer영역 -->
+        </footer>
+
+
+<!--6차-1 modal (6차-2)-->
+		<div id="modal_div1" >
+			<div id="modal_div2" title="클릭하면 창이 닫힙니다.">
+				<!-- modal이 닫히는지 확인하려고  --> 
+				<!-- <a href="#" class="modal_close_btn">닫기</a> -->
+				
+<!-- 6차-7 기존꺼 지우고 login.html에서 가져옴 (6차-8)-->
+				<form name="loginForm" action="">
+		            <div class="int-area">
+		                <input type="password" id="mem_pw" name="mem_pw" value="" placeholder="PASSWORD" autocomplete="off" required>
+		                <!-- <label for="mem_id">PASSWORD</label> -->
+		            </div>
+		            <div class="int-area">
+		                <input type="password" id="mem_pw_check" name="mem_pw_check" placeholder="RECONFIRM PASSWORD" autocomplete="off" required>
+		                <!-- <label for="mem_pw_check">RECONFIRM PASSWORD</label> -->
+		            </div>
+		            <div class="btn-area">
+		                <button type="button" id="btn_id" name="btn_id" onclick="fn_change()">CHANGE</button>
+		            </div>
+		        </form>
+				
+			</div>
+		</div>
+<!-- 6차-3 modal이 뜨는지 확인 하기 위해서(6차-4) --> 
+		<!-- <button onclick="fn_modal_write()">모달띠우기</button> -->
+
+    </div>  <!-- wrap e -->
+</body>
+</html>

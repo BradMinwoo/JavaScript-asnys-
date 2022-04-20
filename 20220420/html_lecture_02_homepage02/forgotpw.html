@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>NextIT</title>
+<link rel="icon" type="image/x-icon" href="./images/nextit_log.jpg" />
+<link rel="stylesheet" type="text/css" href="./css/forgotpw.css">
+<script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+/*
+방벙
+	아이디, (회원가입했을떄 입력한)넘버 값으로 확인 하고 맞다면  패스워드를 아이디로 초기화 해주기
+순서
+	1. id 값을 가져와서 like_num값 이 일치 하는지 확인
+	2. 일치하다면 해당 순번을 지우고 새로 넣어주기, 넣어줄때 패스워드를 아이디로 변경 해서 넣어주기 
+	3. 로그인했을때  ID와 PW 가 갖다면 패스워드 수정하기(home.html에서 modal로 처리하기) 
+*/
+ 
+$(function(){
+    $("#mem_id").click(function(){
+    	$(this).next().removeClass("warning");
+    }); 
+    $("#mem_like_num").click(function(){
+    	$(this).next().removeClass("warning");
+    });
+});
+ 
+ 
+function check(){
+	// alert("check");
+
+	let mem_id = $("#mem_id").val().trim();
+	//입력 했는지 여부 확인
+	if($("#mem_id").val() ==""){
+        $("#mem_id").next().addClass("warning");
+        return;
+	}else if($("#mem_like_num").val() =="" ){
+        $("#mem_like_num").next().addClass("warning");
+        return;
+    }      
+ 
+}
+
+</script>
+</head>
+<body>
+    <section class="login_form">
+        <h1>NextIT</h1> 
+        <form action="">
+            <div class="int-area">
+                <input type="text" id="mem_id" name="mem_id" autocomplete="off" value="" required>
+                <label for=mem_id>USER ID</label>
+            </div>
+            <div class="int-area">
+                <input type="text" id="mem_like_num" name="mem_like_num" autocomplete="off" value="" required>
+                <label for=mem_like_num>NUMBER( the number when joining ) </label>
+            </div>
+            <div class="btn-area">
+                <button type="button"  id="btn_id"name="btn_id" onclick="check()">CHECK</button>
+            </div>
+        </form>    
+    </section>
+    
+</body>
+</html>

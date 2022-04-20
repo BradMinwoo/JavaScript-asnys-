@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset='utf-8'>
+<title>NextIT</title>
+<link rel="icon" type="image/x-icon" href="./images/nextit_log.jpg" />
+<link rel="stylesheet" type="text/css"  href="./css/header.css">
+<link rel="stylesheet" type="text/css"  href="./css/footer.css">
+<link rel="stylesheet" type="text/css"  href="./css/style_boardList.css">
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script>
+$(function(){
+//1차-1 url 변경하기 (1차-2)
+	$(".top_nav").load("/sample01_ajax/header.do");
+	$("#page_footer").load("/sample01_ajax/footer.do");
+	
+	
+//1차-4이번 달 기준으로 조회 하고자할때(1차-5)
+	/*
+	let date = new Date();
+	let year = date.getFullYear();
+	let month = (date.getMonth()+1).toString();
+	console.log(month.length);
+	if (month.length==1){
+		month = "0"+month;
+	}
+	let now_month = year+""+month+"01";
+	console.log("now_month:::"+now_month);
+	let url_address = "http://kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchDailyBoxOfficeList.json?key=5f71191394b4f5330dc5a21ed8e1e25f&targetDt="+now_month;
+	 */
+	 
+//1차-2 (http://www.kobis.or.kr/kobisopenapi/homepg/apiservice/searchServiceInfo.do 에서 데이터 전송하는법 확인후 ) ajax로 데이터 요청(1차-3) 
+	$.ajax({
+		type:"GET",
+		url: "http://kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchDailyBoxOfficeList.json?key=5f71191394b4f5330dc5a21ed8e1e25f&targetDt=20210901",
+
+//1차-5 이번달 기준으로 요청하기 위해서 url 변경(All-e)
+		//url: url_address,
+		
+		dataType:'json',
+		success:function(data){
+		    //alert("success");
+		    console.log(data);
+		        // {boxOfficeResult: {…}}boxOfficeResult: {boxofficeType: "일별 박스오피스", showRange: "20120101~20120101", dailyBoxOfficeList: Array(10)}[[Prototype]]: Object
+		    
+	        let movie_list = data.boxOfficeResult;
+		    console.log("movie_list.boxofficeType::::"+movie_list.boxofficeType);
+		
+	        let movie_array = movie_list.dailyBoxOfficeList;
+	        console.log("movie_array:::::"+movie_array);
+		
+            let index = 1;
+            let insertHTML ="";
+            movie_array.forEach(element => {
+                //console.log("element:::::"+element.movieNm)
+                insertHTML += "<tr>";
+                insertHTML += "<td>"+index+"</td>"; 
+                insertHTML += "<td>"+element.movieNm+"</td>"
+                insertHTML += "</tr>";
+                index++
+            });
+            $("#div_table tbody").html(insertHTML);
+		},
+		error:function(e){
+		    alert("error");
+		}
+	}); 
+});
+</script>
+</head>
+<body>
+    <div id="wrap">
+        <div class="header">
+            <div class="top_nav">
+                <!-- header 영역 -->
+            </div>
+        </div>
+        <!-- header e -->
+
+        <div class="intro_bg">
+            <div class="intro_text">
+                <h1>NextIT</h1>
+                <h4>넥스트아이티</h4>
+            </div>
+        </div>
+        <!-- intro_bg e -->
+
+        <!-- 전체 영역잡기 -->
+        <div class="contents">
+        
+<!--1차-3 영화순위 목록을 잡을 테이블 생성(1차-4)-->
+            <div class="div_movie">
+                <div id="div_table">
+                    <table>
+                        <colgroup>
+                            <col width="100">
+                            <col width="?">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>제목</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 영화리스트 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            
+        </div>
+
+         <!-- footer -->
+         <footer id="page_footer">
+            <!-- footer영역 -->
+        </footer>
+
+   </div>    
+</body>
+</html>
